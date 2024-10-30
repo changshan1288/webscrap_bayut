@@ -1,0 +1,14 @@
+# Packages
+__pycache__
+
+# Virtual environment
+.venv
+
+# IDE
+.idea
+
+
+# Environment files
+.env
+
+result
