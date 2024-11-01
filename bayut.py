@@ -1,13 +1,16 @@
-import datetime
 import sys
 import time
 import requests
 import config
 import json
 import csv
-from MySQLDatabase import MySQLDatabase
+import webbrowser
+import pyautogui
+from lxml import html
+from database import MySQLDatabase
+import email
+from pathlib import Path
 from utils import get_extracted_data, get_raw_data, get_params, get_headers, get_request_url
-from bs4 import BeautifulSoup
 
 def main(file_type, purpose, category, search):
     db = MySQLDatabase(
@@ -39,6 +42,8 @@ def main(file_type, purpose, category, search):
         results = json_data.get("results")
         hints = results[0].get("hits")
         for hit in hints:
+            download_webpage(hit.get("externalID"))
+        for hit in hints:
             property = get_detail_information(hit.get("externalID"))
             item = get_extracted_data(hit, property)
             if file_type != "csv":
@@ -46,12 +51,21 @@ def main(file_type, purpose, category, search):
             else:
                 save_csv_file(count, item)
             count += 1
+        remove_all_files_in_folder('temp')
         time.sleep(5)
         if len(hints) == 0:
             print(f"Total of items is {count}.")
             break
         page_num += 1
+        break
 
+
+def remove_all_files_in_folder(folder_path):
+    path = Path(folder_path)
+    if path.exists() and path.is_dir():
+        for file in path.iterdir():
+            if file.is_file():  # Check if it is a file
+                file.unlink()
 def save_csv_file(count, item):
     csv_file = 'result/bayut.csv'
     with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
@@ -62,19 +76,30 @@ def save_csv_file(count, item):
         print(f"Inserting new item with id: {item['id']}")
 
 def get_detail_information(externalID):
-    url = f"https://www.bayut.com/property/details-{externalID}.html"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
-    }
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    main_tag = soup.find('main')
-    property_information = main_tag.find('ul', {"aria-label": "Property details"})
-    json_data1 = ""
+    filename = f"temp/webpage{externalID}.mhtml"
+    with open(filename, 'rb') as mhtml_file:
+        # Parse the mhtml content
+        msg = email.message_from_bytes(mhtml_file.read())
+
+    # Find the HTML part
+    html_content = ""
+    for part in msg.walk():
+        # Look for HTML content
+        if part.get_content_type() == "text/html":
+            html_content = part.get_payload(decode=True).decode(part.get_content_charset('utf-8'))
+            break
+    tree = html.fromstring(html_content)
+    size = tree.xpath('//*[@id="body-wrapper"]/main/div[2]/div[4]/div[1]/div[3]/div[1]/span[2]/span[1]/span[1]/text()')[0]
+    description = tree.xpath('//*[@id="body-wrapper"]/main/div[2]/div[4]/div[3]/div[1]/div/div[1]/div[1]/div/div/div/span/text()')[0]
+    property_ul = tree.xpath('//*[@id="body-wrapper"]/main/div[2]/div[4]/div[3]/div[1]/div/div[2]/ul')
+    building_ul = tree.xpath('//*[@id="body-wrapper"]/main/div[2]/div[4]/div[3]/div[4]/ul')
+    validation_ul = tree.xpath('//*[@id="body-wrapper"]/main/div[2]/div[4]/div[3]/div[2]/ul')
     data = {}
-    if property_information:
-        for li in property_information.find_all('li'):
-            spans = li.find_all('span')
+    data['size'] = size
+    data['description'] = description
+    if property_ul:
+        for li in property_ul[0].findall('li'):
+            spans = li.findall('span')
             if len(spans) >= 2:  # Ensure there are at least two <span> elements
                 key = spans[0].text.strip()
                 # Check if the second span contains a nested div
@@ -83,8 +108,58 @@ def get_detail_information(externalID):
                 else:
                     value = spans[1].text.strip()
                 data[key] = value
-        json_data1 = json.dumps(data, indent=4)
-    return json_data1
+    if building_ul:
+        for li in building_ul[0].xpath("./li"):
+            spans = li.findall('span')
+            if len(spans) >= 2:
+                key = spans[0].text.strip()
+                value = ""
+                if spans[1].xpath('./div/div/div/span/span'):
+                    value = spans[1].xpath('./div/div/div/span/span')[0].text.strip()
+                elif spans[1].xpath('./div/div[1]/div'):
+                    value = spans[1].xpath('./div/div[1]/div')[0].text.strip()
+                elif spans[1].xpath('./div/div/div'):
+                    value = spans[1].xpath('./div/div/div')[0].text.strip()
+                else:
+                    value = spans[1].text.strip()
+                data[key] = value
+    if validation_ul:
+        for li in validation_ul[0].xpath("./li"):
+            spans = li.findall('span')
+            if len(spans) >= 2:
+                key = spans[0].text.strip()
+                value = ""
+                if spans[1].xpath('./div/div/div/span/span'):
+                    value = spans[1].xpath('./div/div/div/span/span')[0].text.strip()
+                elif spans[1].xpath('./div/div[1]/div'):
+                    value = spans[1].xpath('./div/div[1]/div')[0].text.strip()
+                elif spans[1].xpath('./div/div/div'):
+                    value = spans[1].xpath('./div/div/div')[0].text.strip()
+                else:
+                    value = spans[1].text.strip()
+                data[key] = value
+    json_data2 = json.dumps(data, indent=4)
+    return json_data2
+
+def download_webpage(externalID):
+
+    url = f"https://www.bayut.com/property/details-{externalID}.html"
+
+    webbrowser.open(url)
+
+    time.sleep(3)
+
+    for _ in range(30):  # Adjust the range as needed
+        pyautogui.press("down")  # Press the Down Arrow key to scroll down
+        time.sleep(0.2)
+
+    pyautogui.hotkey('ctrl', 's')
+
+    time.sleep(1)
+
+    pyautogui.typewrite(f'webpage{externalID}.mhtml')
+
+    pyautogui.press('enter')
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
