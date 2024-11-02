@@ -150,7 +150,7 @@ class MySQLDatabase:
                         ded VARCHAR(50),
                         rera VARCHAR(50),
                         orn VARCHAR(50),
-                        description LONGTEXT,
+                        description TEXT,
                         type_value VARCHAR(50),
                         purpose VARCHAR(50),
                         reference_no VARCHAR(50),
