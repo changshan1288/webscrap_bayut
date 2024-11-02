@@ -118,7 +118,12 @@ def download_webpage(externalID):
 
     webbrowser.open(url)
 
-    time.sleep(5)
+    screen_width, screen_height = pyautogui.size()
+    center_x = screen_width // 2
+    center_y = screen_height // 2
+    pyautogui.moveTo(center_x, center_y, duration=0.5)
+
+    time.sleep(6)
 
     pyautogui.hotkey('ctrl', 's')
 
@@ -129,6 +134,7 @@ def download_webpage(externalID):
     pyautogui.press('enter')
     time.sleep(1)
     pyautogui.hotkey('ctrl', 'w')
+    time.sleep(1)
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]

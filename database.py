@@ -181,7 +181,7 @@ class MySQLDatabase:
         self.execute_query(create_table_sql)
     def insert_item(self, item):
         insert_query = """
-                INSERT INTO properties (
+                INSERT INTO {config.TABLE_NAME} (
                     id, ownerID, title, baths, rooms, price, createdAt, updatedAt,
                     reactivatedAt, area, plotArea, location, category, mobile, phone,
                     whatsapp, proxyPhone, contactName, permitNumber, ded, rera, orn,
