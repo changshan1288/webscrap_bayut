@@ -109,7 +109,6 @@ def get_detail_information(externalID):
                 value = ' '.join(text.strip() for text in value if text.strip())
                 data[key] = value
     json_data2 = json.dumps(data, indent=4)
-    print(json_data2)
     return json_data2
 
 def download_webpage(externalID):
@@ -148,5 +147,6 @@ if __name__ == '__main__':
     if not category in categories:
         print(f"category value is wrong: {sys.argv[2]}")
         exit(1)
+    remove_all_files_in_folder('temp')
     main(result_file_type, purpose, category, search)
 

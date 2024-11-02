@@ -174,13 +174,13 @@ class MySQLDatabase:
                         developers VARCHAR(255),
                         built_up_Area VARCHAR(255),
                         usage_value VARCHAR(255),
-                        parking_available VARCHAR(255),
+                        parking_availability VARCHAR(255),
                         ownership VARCHAR(255)
                     );
                 """
         self.execute_query(create_table_sql)
     def insert_item(self, item):
-        insert_query = """
+        insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (
                     id, ownerID, title, baths, rooms, price, createdAt, updatedAt,
                     reactivatedAt, area, plotArea, location, category, mobile, phone,
