@@ -78,6 +78,7 @@ def save_csv_file(count, item):
         print(f"Inserting new item with id: {item['id']}")
 def get_detail_information(externalID):
     filename = f"temp/webpage{externalID}.mhtml"
+    json_data2 = ""
     try:
         with open(filename, 'rb') as mhtml_file:
             # Parse the mhtml content
@@ -112,6 +113,7 @@ def get_detail_information(externalID):
         json_data2 = json.dumps(data, indent=4)
     except FileNotFoundError:
         print(f"File not found: {filename}")
+    print(json_data2)
     return json_data2
 
 def download_webpage(externalID):
@@ -151,20 +153,21 @@ def download_webpage(externalID):
             print(f"File not found: {filename}")
 
 if __name__ == '__main__':
-    purposes = ["for-sale", "for-rent"]
-    categories = ["residential", "commercial"]
-    result_file_type = sys.argv[1]
-    purpose = sys.argv[2]
-    category = sys.argv[3]
-    search = None
-    if len(sys.argv) > 4:
-        search = sys.argv[4]
-    if not purpose in purposes:
-        print(f"Purpose value is wrong: {sys.argv[1]}")
-        exit(1)
-    if not category in categories:
-        print(f"category value is wrong: {sys.argv[2]}")
-        exit(1)
-    remove_all_files_in_folder('temp')
-    main(result_file_type, purpose, category, search)
+    get_detail_information(10079972)
+    # purposes = ["for-sale", "for-rent"]
+    # categories = ["residential", "commercial"]
+    # result_file_type = sys.argv[1]
+    # purpose = sys.argv[2]
+    # category = sys.argv[3]
+    # search = None
+    # if len(sys.argv) > 4:
+    #     search = sys.argv[4]
+    # if not purpose in purposes:
+    #     print(f"Purpose value is wrong: {sys.argv[1]}")
+    #     exit(1)
+    # if not category in categories:
+    #     print(f"category value is wrong: {sys.argv[2]}")
+    #     exit(1)
+    # remove_all_files_in_folder('temp')
+    # main(result_file_type, purpose, category, search)
 

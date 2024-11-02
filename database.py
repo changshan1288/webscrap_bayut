@@ -89,7 +89,7 @@ class MySQLDatabase:
                         offices = %s, shops = %s, developers = %s,
                         built_up_Area = %s, usage_value = %s,
                         parking_availability = %s, ownership = %s,
-                        ownerAgent = %s, agency = %s,
+                        ownerAgent = %s, agency = %s, retail_centres = %s,
                         property_link = %s
                     WHERE id = %s
                     """
@@ -119,6 +119,7 @@ class MySQLDatabase:
             json_data['built_up_Area'], json_data['usage'],
             json_data['parking_availability'], json_data['ownership'],
             json_data['ownerAgent'], json_data['agency'],
+            json_data['retail_centres'],
             json_data['property_link'],
             json_data['id']  # This is the condition to match the record to update
         )
@@ -175,6 +176,7 @@ class MySQLDatabase:
                         built_up_Area VARCHAR(255),
                         usage_value VARCHAR(255),
                         parking_availability VARCHAR(255),
+                        retail_centres VARCHAR(255),
                         ownership VARCHAR(255)
                     );
                 """
@@ -188,7 +190,7 @@ class MySQLDatabase:
                     type_value, purpose, reference_no, completion, furnishing, truCheck, added_on,
                     handover_date, description, size_value, building_name, park_spaces, floors,
                     building_area, swimming_pools, elevators, offices, shops, developers,
-                    built_up_Area, usage_value, parking_availability, ownership, ownerAgent,
+                    built_up_Area, usage_value, parking_availability, retail_centres, ownership, ownerAgent,
                     agency, property_link
                 ) VALUES (
                     %(id)s, %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
@@ -200,7 +202,7 @@ class MySQLDatabase:
                     %(size)s, %(building_name)s, %(park_spaces)s, %(floors)s, 
                     %(building_area)s, %(swimming_pools)s, %(elevators)s, 
                     %(offices)s, %(shops)s, %(developers)s, %(built_up_Area)s, 
-                    %(usage)s, %(parking_availability)s, %(ownership)s, 
+                    %(usage)s, %(parking_availability)s, %(ownership)s, %(retail_centres)s,
                     %(ownerAgent)s, %(agency)s, %(property_link)s
                 )
                 """
