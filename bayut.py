@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import requests
@@ -77,38 +78,40 @@ def save_csv_file(count, item):
         print(f"Inserting new item with id: {item['id']}")
 def get_detail_information(externalID):
     filename = f"temp/webpage{externalID}.mhtml"
+    try:
+        with open(filename, 'rb') as mhtml_file:
+            # Parse the mhtml content
+            msg = email.message_from_bytes(mhtml_file.read())
+        # Find the HTML part
+        html_content = ""
+        for part in msg.walk():
+            if part.get_content_type() == "text/html":
+                html_content = part.get_payload(decode=True).decode(part.get_content_charset('utf-8'))
+                break
+        tree = html.fromstring(html_content)
+        data = {}
+        area_text = tree.xpath('//span[@aria-label="Area"]//text()')
+        area_text = ' '.join(text.strip() for text in area_text if text.strip())
+        data['size'] = area_text
+        description_text = tree.xpath('//div[@aria-label="Property description"]//text()')
+        description_text = ' '.join(text.strip() for text in description_text if text.strip())
+        data['description'] = description_text
+        ul_tags_with_columns = tree.xpath('//ul[contains(@style, "columns:2")]')
 
-    with open(filename, 'rb') as mhtml_file:
-        # Parse the mhtml content
-        msg = email.message_from_bytes(mhtml_file.read())
-    # Find the HTML part
-    html_content = ""
-    for part in msg.walk():
-        if part.get_content_type() == "text/html":
-            html_content = part.get_payload(decode=True).decode(part.get_content_charset('utf-8'))
-            break
-    tree = html.fromstring(html_content)
-    data = {}
-    area_text = tree.xpath('//span[@aria-label="Area"]//text()')
-    area_text = ' '.join(text.strip() for text in area_text if text.strip())
-    data['size'] = area_text
-    description_text = tree.xpath('//div[@aria-label="Property description"]//text()')
-    description_text = ' '.join(text.strip() for text in description_text if text.strip())
-    data['description'] = description_text
-    ul_tags_with_columns = tree.xpath('//ul[contains(@style, "columns:2")]')
-
-    for ids, ul_tag in enumerate(ul_tags_with_columns):
-        for li_tag in ul_tag.xpath('//li'):
-            spans = li_tag.findall('span')
-            if len(spans) >= 2:
-                key = spans[0].text.strip()
-                value = spans[1].xpath('./text()')  # Get text from the second span directly
-                if not value:
-                    value = spans[1].xpath('.//text()')
-                # Clean up whitespace
-                value = ' '.join(text.strip() for text in value if text.strip())
-                data[key] = value
-    json_data2 = json.dumps(data, indent=4)
+        for ids, ul_tag in enumerate(ul_tags_with_columns):
+            for li_tag in ul_tag.xpath('//li'):
+                spans = li_tag.findall('span')
+                if len(spans) >= 2:
+                    key = spans[0].text.strip()
+                    value = spans[1].xpath('./text()')  # Get text from the second span directly
+                    if not value:
+                        value = spans[1].xpath('.//text()')
+                    # Clean up whitespace
+                    value = ' '.join(text.strip() for text in value if text.strip())
+                    data[key] = value
+        json_data2 = json.dumps(data, indent=4)
+    except FileNotFoundError:
+        print(f"File not found: {filename}")
     return json_data2
 
 def download_webpage(externalID):
@@ -121,16 +124,29 @@ def download_webpage(externalID):
 
     time.sleep(6)
 
-    pyautogui.hotkey('ctrl', 's')
+    while True:
+        filename = f'webpage{externalID}.mhtml'
+        if os.path.exists(filename):
+            pyautogui.hotkey('ctrl', 'w')
+            time.sleep(2)
+            break
 
-    time.sleep(1)
+        pyautogui.hotkey('ctrl', 's')
 
-    pyautogui.typewrite(f'webpage{externalID}.mhtml')
+        time.sleep(1)
 
-    pyautogui.press('enter')
-    time.sleep(1)
-    pyautogui.hotkey('ctrl', 'w')
-    time.sleep(1)
+        pyautogui.typewrite(filename)
+
+        time.sleep(1)
+
+        pyautogui.press('enter')
+
+        time.sleep(4)
+
+        if os.path.exists(filename):
+            pyautogui.hotkey('ctrl', 'w')
+            time.sleep(2)
+            break
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
