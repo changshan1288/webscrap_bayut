@@ -120,18 +120,17 @@ def download_webpage(externalID):
 
     url = f"https://www.bayut.com/property/details-{externalID}.html"
 
-    webbrowser.open(url)
-
-    pyautogui.hotkey('win', 'up')
-
-    time.sleep(6)
-
     while True:
         filename = f'webpage{externalID}.mhtml'
         if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(2)
             break
+        webbrowser.open(url)
+
+        pyautogui.hotkey('win', 'up')
+
+        time.sleep(6)
 
         pyautogui.hotkey('ctrl', 's')
 
@@ -149,8 +148,6 @@ def download_webpage(externalID):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(2)
             break
-        else:
-            print(f"File not found: {filename}")
 
 if __name__ == '__main__':
     # get_detail_information(10030139)
