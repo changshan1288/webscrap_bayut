@@ -126,7 +126,7 @@ def download_webpage(externalID):
 
     while True:
         filename = f'webpage{externalID}.mhtml'
-        if os.path.exists(filename):
+        if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(2)
             break
@@ -143,7 +143,7 @@ def download_webpage(externalID):
 
         time.sleep(4)
 
-        if os.path.exists(filename):
+        if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(2)
             break
