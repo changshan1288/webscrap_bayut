@@ -202,7 +202,7 @@ class MySQLDatabase:
                     %(size)s, %(building_name)s, %(park_spaces)s, %(floors)s, 
                     %(building_area)s, %(swimming_pools)s, %(elevators)s, 
                     %(offices)s, %(shops)s, %(developers)s, %(built_up_Area)s, 
-                    %(usage)s, %(parking_availability)s, %(ownership)s, %(retail_centres)s,
+                    %(usage)s, %(parking_availability)s,  %(retail_centres)s, %(ownership)s,
                     %(ownerAgent)s, %(agency)s, %(property_link)s
                 )
                 """

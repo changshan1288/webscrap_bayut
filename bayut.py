@@ -58,8 +58,6 @@ def main(file_type, purpose, category, search):
             print(f"Total of items is {count}.")
             break
         page_num += 1
-        break
-
 
 def remove_all_files_in_folder(folder_path):
     path = Path(folder_path)
@@ -92,7 +90,10 @@ def get_detail_information(externalID):
         tree = html.fromstring(html_content)
         data = {}
         area_text = tree.xpath('//span[@aria-label="Area"]//text()')
-        area_text = ' '.join(text.strip() for text in area_text if text.strip())
+        for text in area_text:
+            if len(text.strip()) > 0:
+                area_text = text
+                break
         data['size'] = area_text
         description_text = tree.xpath('//div[@aria-label="Property description"]//text()')
         description_text = ' '.join(text.strip() for text in description_text if text.strip())
@@ -113,7 +114,6 @@ def get_detail_information(externalID):
         json_data2 = json.dumps(data, indent=4)
     except FileNotFoundError:
         print(f"File not found: {filename}")
-    print(json_data2)
     return json_data2
 
 def download_webpage(externalID):
@@ -153,6 +153,7 @@ def download_webpage(externalID):
             print(f"File not found: {filename}")
 
 if __name__ == '__main__':
+    # get_detail_information(10030139)
     purposes = ["for-sale", "for-rent"]
     categories = ["residential", "commercial"]
     result_file_type = sys.argv[1]
