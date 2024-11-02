@@ -118,10 +118,7 @@ def download_webpage(externalID):
 
     webbrowser.open(url)
 
-    screen_width, screen_height = pyautogui.size()
-    center_x = screen_width // 2
-    center_y = screen_height // 2
-    pyautogui.moveTo(center_x, center_y, duration=0.5)
+    pyautogui.hotkey('win', 'up')
 
     time.sleep(6)
 
