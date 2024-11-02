@@ -147,6 +147,8 @@ def download_webpage(externalID):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(2)
             break
+        else:
+            print(f"File not found: {filename}")
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
