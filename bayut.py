@@ -13,7 +13,7 @@ import email
 from pathlib import Path
 from utils import get_extracted_data, get_raw_data, get_params, get_headers, get_request_url
 
-def main(file_type, purpose, category, search):
+def main(file_type, purpose, category, search, page_num):
     db = MySQLDatabase(
         host=config.MYSQL_HOST,
         user=config.MYSQL_USER,
@@ -30,7 +30,6 @@ def main(file_type, purpose, category, search):
 
     headers = get_headers()
 
-    page_num = 0
     count = 0
     while True:
         print(f"page_num: {page_num+1}")
@@ -124,13 +123,13 @@ def download_webpage(externalID):
         filename = f'webpage{externalID}.mhtml'
         if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
-            time.sleep(2)
+            time.sleep(1)
             break
         webbrowser.open(url)
 
         pyautogui.hotkey('win', 'up')
 
-        time.sleep(6)
+        time.sleep(4)
 
         pyautogui.hotkey('ctrl', 's')
 
@@ -142,23 +141,26 @@ def download_webpage(externalID):
 
         pyautogui.press('enter')
 
-        time.sleep(4)
+        time.sleep(2)
 
         if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
-            time.sleep(2)
+            time.sleep(1)
             break
 
 if __name__ == '__main__':
-    # get_detail_information(10030139)
     purposes = ["for-sale", "for-rent"]
     categories = ["residential", "commercial"]
     result_file_type = sys.argv[1]
     purpose = sys.argv[2]
     category = sys.argv[3]
     search = None
+    page_num = 0
     if len(sys.argv) > 4:
         search = sys.argv[4]
+    if len(sys.argv) > 5:
+        page_num = int(sys.argv[5])
+
     if not purpose in purposes:
         print(f"Purpose value is wrong: {sys.argv[1]}")
         exit(1)
@@ -166,5 +168,5 @@ if __name__ == '__main__':
         print(f"category value is wrong: {sys.argv[2]}")
         exit(1)
     remove_all_files_in_folder('temp')
-    main(result_file_type, purpose, category, search)
+    main(result_file_type, purpose, category, search, page_num)
 
