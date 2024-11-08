@@ -68,7 +68,7 @@ class MySQLDatabase:
             self.insert_item(item)
 
     def update_item(self, json_data):
-        update_query = """
+        update_query = f"""
                     UPDATE {config.TABLE_NAME}
                     SET
                         ownerID = %s, title = %s, baths = %s,
@@ -129,7 +129,6 @@ class MySQLDatabase:
         create_table_sql = f"""
                     CREATE TABLE IF NOT EXISTS {config.TABLE_NAME} (
                         id INT AUTO_INCREMENT PRIMARY KEY,
-                        unique_id INT,
                         ownerID INT,
                         title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
                         baths INT,
@@ -181,6 +180,16 @@ class MySQLDatabase:
                     );
                 """
         self.execute_query(create_table_sql)
+        create_table_sql = f"""
+                            CREATE TABLE IF NOT EXISTS {config.STATUS_TABLE_NAME} (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            title VARCHAR(255)
+                            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"""
+        self.execute_query(create_table_sql)
+    def insert_status(self):
+        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} (title) VALUES (%s);"""
+        self.execute_query(insert_query, "bayut scrap running")
+
     def insert_item(self, item):
         insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (

@@ -30,6 +30,8 @@ def main(file_type, purpose, category, search, page_num):
 
     headers = get_headers()
 
+    db.insert_status()
+
     count = 0
     while True:
         print(f"page_num: {page_num+1}")
@@ -129,7 +131,7 @@ def download_webpage(externalID):
 
         pyautogui.hotkey('win', 'up')
 
-        time.sleep(4)
+        time.sleep(3)
 
         pyautogui.hotkey('ctrl', 's')
 
@@ -141,7 +143,7 @@ def download_webpage(externalID):
 
         pyautogui.press('enter')
 
-        time.sleep(2)
+        time.sleep(1)
 
         if os.path.exists('temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')

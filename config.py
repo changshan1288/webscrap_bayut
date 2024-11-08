@@ -13,3 +13,5 @@ MYSQL_DB = os.getenv("MYSQL_DB")
 MYSQL_PORT = os.getenv("MYSQL_PORT")
 
 TABLE_NAME = os.getenv("TABLE_NAME")
+
+STATUS_TABLE_NAME = os.getenv("STATUS_TABLE_NAME")
