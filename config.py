@@ -15,3 +15,7 @@ MYSQL_PORT = os.getenv("MYSQL_PORT")
 TABLE_NAME = os.getenv("TABLE_NAME")
 
 STATUS_TABLE_NAME = os.getenv("STATUS_TABLE_NAME")
+
+count = 0
+update = 0
+insert = 0

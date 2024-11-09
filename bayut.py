@@ -32,7 +32,9 @@ def main(file_type, purpose, category, search, page_num):
 
     db.insert_status()
 
-    count = 0
+    config.count = 0
+    config.insert = 0
+    config.update = 0
     while True:
         print(f"page_num: {page_num+1}")
 
@@ -51,12 +53,14 @@ def main(file_type, purpose, category, search, page_num):
             if file_type != "csv":
                 db.check_item_and_update_or_insert(item)
             else:
-                save_csv_file(count, item)
-            count += 1
+                save_csv_file(config.count, item)
+            config.count += 1
         remove_all_files_in_folder('temp')
         time.sleep(5)
         if len(hints) == 0:
-            print(f"Total of items is {count}.")
+            print(f"Total of items is {config.count}.")
+            title = f"bayut scrap end total: {config.count}, insert: {config.insert}, update: {config.update}"
+            db.insert_status(title)
             break
         page_num += 1
 

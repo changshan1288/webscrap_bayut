@@ -62,9 +62,11 @@ class MySQLDatabase:
                 print(f"Duplicated id: {item['id']}")
             else:
                 print(f"Updated id: {item['id']}")
+                config.update += 1
                 self.update_item(item)
         else:
             print(f"Inserting new item with id: {item['id']}")
+            config.insert += 1
             self.insert_item(item)
 
     def update_item(self, json_data):
@@ -183,12 +185,14 @@ class MySQLDatabase:
         create_table_sql = f"""
                             CREATE TABLE IF NOT EXISTS {config.STATUS_TABLE_NAME} (
                             id INT AUTO_INCREMENT PRIMARY KEY,
-                            title VARCHAR(255)
+                            title VARCHAR(255),
                             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"""
         self.execute_query(create_table_sql)
-    def insert_status(self):
+    def insert_status(self, title=None):
         insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} (title) VALUES (%s);"""
-        self.execute_query(insert_query, "bayut scrap running")
+        if title is None:
+            title = "bayut scrap start"
+        self.execute_query(insert_query, title)
 
     def insert_item(self, item):
         insert_query = f"""
