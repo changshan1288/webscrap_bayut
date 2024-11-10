@@ -55,7 +55,7 @@ def main(file_type, purpose, category, search, page_num):
             else:
                 save_csv_file(config.count, item)
             config.count += 1
-        remove_all_files_in_folder('temp')
+        remove_all_files_in_folder(config.UTILS_DIR + '/temp')
         time.sleep(5)
         if len(hints) == 0:
             print(f"Total of items is {config.count}.")
@@ -80,7 +80,7 @@ def save_csv_file(count, item):
         writer.writerow(item.values())
         print(f"Inserting new item with id: {item['id']}")
 def get_detail_information(externalID):
-    filename = f"temp/webpage{externalID}.mhtml"
+    filename = f"{config.UTILS_DIR}/temp/webpage{externalID}.mhtml"
     json_data2 = ""
     try:
         with open(filename, 'rb') as mhtml_file:
@@ -127,7 +127,7 @@ def download_webpage(externalID):
 
     while True:
         filename = f'webpage{externalID}.mhtml'
-        if os.path.exists('temp/'+ filename):
+        if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(1)
             break
@@ -149,7 +149,7 @@ def download_webpage(externalID):
 
         time.sleep(1)
 
-        if os.path.exists('temp/'+ filename):
+        if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
             pyautogui.hotkey('ctrl', 'w')
             time.sleep(1)
             break
@@ -173,6 +173,6 @@ if __name__ == '__main__':
     if not category in categories:
         print(f"category value is wrong: {sys.argv[2]}")
         exit(1)
-    remove_all_files_in_folder('temp')
+    remove_all_files_in_folder(config.UTILS_DIR + '/temp')
     main(result_file_type, purpose, category, search, page_num)
 
