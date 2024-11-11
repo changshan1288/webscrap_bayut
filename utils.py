@@ -58,7 +58,8 @@ def get_extracted_data(item, property):
         "ownership": property.get("Ownership"),
         "ownerAgent": item.get("ownerAgent").get("name"),
         "agency": item.get("agency").get("name"),
-        "property_link": href
+        "property_link": href,
+        "is_available": property.get("is_available")
     }
     return json_data
 

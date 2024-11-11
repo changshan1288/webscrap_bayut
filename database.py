@@ -92,7 +92,7 @@ class MySQLDatabase:
                         built_up_Area = %s, usage_value = %s,
                         parking_availability = %s, ownership = %s,
                         ownerAgent = %s, agency = %s, retail_centres = %s,
-                        property_link = %s
+                        property_link = %s, is_available = %s
                     WHERE id = %s
                     """
 
@@ -123,6 +123,7 @@ class MySQLDatabase:
             json_data['ownerAgent'], json_data['agency'],
             json_data['retail_centres'],
             json_data['property_link'],
+            json_data['is_available'],
             json_data['id']  # This is the condition to match the record to update
         )
         self.execute_query(update_query, values)
@@ -178,7 +179,8 @@ class MySQLDatabase:
                         usage_value VARCHAR(255),
                         parking_availability VARCHAR(255),
                         retail_centres VARCHAR(255),
-                        ownership VARCHAR(255)
+                        ownership VARCHAR(255),
+                        is_available TINYINT(1)
                     );
                 """
         self.execute_query(create_table_sql)
@@ -204,7 +206,7 @@ class MySQLDatabase:
                     handover_date, description, size_value, building_name, park_spaces, floors,
                     building_area, swimming_pools, elevators, offices, shops, developers,
                     built_up_Area, usage_value, parking_availability, retail_centres, ownership, ownerAgent,
-                    agency, property_link
+                    agency, property_link, is_available
                 ) VALUES (
                     %(id)s, %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
                     %(updatedAt)s, %(reactivatedAt)s, %(area)s, %(plotArea)s, %(location)s,
@@ -216,7 +218,7 @@ class MySQLDatabase:
                     %(building_area)s, %(swimming_pools)s, %(elevators)s, 
                     %(offices)s, %(shops)s, %(developers)s, %(built_up_Area)s, 
                     %(usage)s, %(parking_availability)s,  %(retail_centres)s, %(ownership)s,
-                    %(ownerAgent)s, %(agency)s, %(property_link)s
+                    %(ownerAgent)s, %(agency)s, %(property_link)s, %(is_available)s
                 )
                 """
         self.execute_query(insert_query, item)

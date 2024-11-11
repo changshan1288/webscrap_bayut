@@ -103,6 +103,13 @@ def get_detail_information(externalID):
         description_text = tree.xpath('//div[@aria-label="Property description"]//text()')
         description_text = ' '.join(text.strip() for text in description_text if text.strip())
         data['description'] = description_text
+
+        span_available = tree.xpath('//span[@aria-label="Inactive property banner"]//text()')
+        is_available = 1
+        if span_available:
+            is_available = 0
+        data['is_available'] = is_available
+
         ul_tags_with_columns = tree.xpath('//ul[contains(@style, "columns:2")]')
 
         for ids, ul_tag in enumerate(ul_tags_with_columns):
