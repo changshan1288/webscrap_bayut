@@ -33,8 +33,6 @@ def main(file_type, purpose, category, search, page_num):
     headers = get_headers()
 
     config.count = 0
-    config.insert = 0
-    config.update = 0
     while True:
         print(f"page_num: {page_num+1}")
 
@@ -52,12 +50,11 @@ def main(file_type, purpose, category, search, page_num):
             item = get_extracted_data(hit, property)
             if file_type != "csv":
                 db.check_item_and_update_or_insert(item)
-                db.insert_item_for_trand(item)
             else:
                 save_csv_file(config.count, item)
             config.count += 1
         remove_all_files_in_folder(config.UTILS_DIR + '/temp')
-        time.sleep(5)
+        time.sleep(3)
         if len(hints) == 0:
             print(f"Total of items is {config.count}.")
             end_time = datetime.now()
@@ -151,9 +148,11 @@ def download_webpage(externalID):
             break
         webbrowser.open(url)
 
+        time.sleep(3)
+
         pyautogui.hotkey('win', 'up')
 
-        time.sleep(3)
+        time.sleep(1)
 
         pyautogui.hotkey('ctrl', 's')
 
@@ -193,5 +192,6 @@ if __name__ == '__main__':
         exit(1)
     remove_all_files_in_folder(config.UTILS_DIR + '/temp')
     config.created = datetime.now()
+    print(f"scrap start : {config.created}")
     main(result_file_type, purpose, category, search, page_num)
 

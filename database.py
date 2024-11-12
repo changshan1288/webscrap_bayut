@@ -66,6 +66,7 @@ class MySQLDatabase:
         else:
             print(f"Inserting new item with id: {item['id']}")
             self.insert_item(item)
+        self.insert_item_for_trand(item)
 
     def update_item(self, json_data):
         update_query = f"""
@@ -248,7 +249,7 @@ class MySQLDatabase:
                                 retail_centres VARCHAR(255),
                                 ownership VARCHAR(255),
                                 is_available TINYINT(1),
-                                date DATETIME
+                                scrap_date DATETIME
                             );
                         """
         self.execute_query(create_table_sql)
@@ -284,6 +285,7 @@ class MySQLDatabase:
         self.execute_query(insert_query, item)
 
     def insert_item_for_trand(self, item):
+        item["created"] = config.created
         insert_query = f"""
             INSERT INTO {config.TRAND_TABLE_NAME} (
                 id, ownerID, title, baths, rooms, price, createdAt, updatedAt,
@@ -293,7 +295,7 @@ class MySQLDatabase:
                 handover_date, description, size_value, building_name, park_spaces, floors,
                 building_area, swimming_pools, elevators, offices, shops, developers,
                 built_up_Area, usage_value, parking_availability, retail_centres, ownership, ownerAgent,
-                agency, property_link, is_available, date
+                agency, property_link, is_available, scrap_date
             ) VALUES (
                 %(id)s, %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
                 %(updatedAt)s, %(reactivatedAt)s, %(area)s, %(plotArea)s, %(location)s,
@@ -305,7 +307,7 @@ class MySQLDatabase:
                 %(building_area)s, %(swimming_pools)s, %(elevators)s, 
                 %(offices)s, %(shops)s, %(developers)s, %(built_up_Area)s, 
                 %(usage)s, %(parking_availability)s,  %(retail_centres)s, %(ownership)s,
-                %(ownerAgent)s, %(agency)s, %(property_link)s, %(is_available)s, {config.created}
+                %(ownerAgent)s, %(agency)s, %(property_link)s, %(is_available)s, %(created)s
             )
             """
         self.execute_query(insert_query, item)
