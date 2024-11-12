@@ -9,7 +9,6 @@ import webbrowser
 import pyautogui
 from lxml import html
 
-from config import execution_time
 from database import MySQLDatabase
 import email
 from pathlib import Path
