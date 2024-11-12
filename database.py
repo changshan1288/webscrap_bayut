@@ -191,7 +191,7 @@ class MySQLDatabase:
                             ISSUE_COUNTS INT,
                             ERROR_MESSAGE VARCHAR(255),
                             STATUS VARCHAR(255),
-                            EXECUTION_TIME DATETIME,
+                            EXECUTION_TIME TIME,
                             CREATED DATETIME
                         );
                 """

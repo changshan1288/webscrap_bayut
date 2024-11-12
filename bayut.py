@@ -43,6 +43,9 @@ def main(file_type, purpose, category, search, page_num):
         json_data = json.loads(response.text)
         results = json_data.get("results")
         hints = results[0].get("hits")
+
+        webbrowser.open("")
+
         for hit in hints:
             download_webpage(hit.get("externalID"))
         for hit in hints:
@@ -65,7 +68,7 @@ def main(file_type, purpose, category, search, page_num):
                 "ISSUE_COUNTS": config.count,
                 "ERROR_MESSAGE": "",
                 "STATUS": "SUCCESS",
-                "EXECUTION_TIME": execution_time,
+                "EXECUTION_TIME": str(execution_time),
                 "CREATED": config.created
             }
             db.insert_log(log_data)
