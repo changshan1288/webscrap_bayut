@@ -33,6 +33,9 @@ def main(file_type, purpose, category, search, page_num):
     headers = get_headers()
 
     config.count = 0
+
+    webbrowser.open('https://www.bayut.com/')
+
     while True:
         print(f"page_num: {page_num+1}")
 
@@ -143,34 +146,37 @@ def download_webpage(externalID):
 
     while True:
         filename = f'webpage{externalID}.mhtml'
-        if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
-            pyautogui.hotkey('ctrl', 'w')
+        try:
+            if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
+                pyautogui.hotkey('ctrl', 'w')
+                time.sleep(1)
+                break
+            webbrowser.open(url)
+
+            time.sleep(3)
+
+            pyautogui.hotkey('win', 'up')
+
             time.sleep(1)
-            break
-        webbrowser.open(url)
 
-        time.sleep(3)
+            pyautogui.hotkey('ctrl', 's')
 
-        pyautogui.hotkey('win', 'up')
-
-        time.sleep(1)
-
-        pyautogui.hotkey('ctrl', 's')
-
-        time.sleep(1)
-
-        pyautogui.typewrite(filename)
-
-        time.sleep(1)
-
-        pyautogui.press('enter')
-
-        time.sleep(1)
-
-        if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
-            pyautogui.hotkey('ctrl', 'w')
             time.sleep(1)
-            break
+
+            pyautogui.typewrite(filename)
+
+            time.sleep(1)
+
+            pyautogui.press('enter')
+
+            time.sleep(1)
+
+            if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
+                pyautogui.hotkey('ctrl', 'w')
+                time.sleep(1)
+                break
+        except pyautogui.FailSafeException:
+            pyautogui.moveTo(500, 500)
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
