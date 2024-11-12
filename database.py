@@ -191,7 +191,9 @@ class MySQLDatabase:
                             ERROR_MESSAGE VARCHAR(255),
                             STATUS VARCHAR(255),
                             EXECUTION_TIME TIMESTAMP,
-                            CREATED TIMESTAMP);"""
+                            CREATED TIMESTAMP
+                        );
+                """
         self.execute_query(create_table_sql)
 
         create_table_sql = f"""
@@ -246,7 +248,7 @@ class MySQLDatabase:
                                 retail_centres VARCHAR(255),
                                 ownership VARCHAR(255),
                                 is_available TINYINT(1),
-                                date DATETIME,
+                                date DATETIME
                             );
                         """
         self.execute_query(create_table_sql)
