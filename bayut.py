@@ -8,9 +8,12 @@ import csv
 import webbrowser
 import pyautogui
 from lxml import html
+
+from config import execution_time
 from database import MySQLDatabase
 import email
 from pathlib import Path
+from datetime import datetime
 from utils import get_extracted_data, get_raw_data, get_params, get_headers, get_request_url
 
 def main(file_type, purpose, category, search, page_num):
@@ -29,8 +32,6 @@ def main(file_type, purpose, category, search, page_num):
     params = get_params()
 
     headers = get_headers()
-
-    db.insert_status()
 
     config.count = 0
     config.insert = 0
@@ -52,6 +53,7 @@ def main(file_type, purpose, category, search, page_num):
             item = get_extracted_data(hit, property)
             if file_type != "csv":
                 db.check_item_and_update_or_insert(item)
+                db.insert_item_for_trand(item)
             else:
                 save_csv_file(config.count, item)
             config.count += 1
@@ -59,8 +61,18 @@ def main(file_type, purpose, category, search, page_num):
         time.sleep(5)
         if len(hints) == 0:
             print(f"Total of items is {config.count}.")
-            title = f"bayut scrap end total: {config.count}, insert: {config.insert}, update: {config.update}"
-            db.insert_status(title)
+            end_time = datetime.now()
+            execution_time = end_time - config.created
+            log_data = {
+                "PROJECT_NAME": "Bayut Scrap",
+                "ISSUE_TYPE": "",
+                "ISSUE_COUNTS": config.count,
+                "ERROR_MESSAGE": "",
+                "STATUS": "SUCCESS",
+                "EXECUTION_TIME": execution_time,
+                "CREATED": config.created
+            }
+            db.insert_log(log_data)
             break
         page_num += 1
 
@@ -181,5 +193,6 @@ if __name__ == '__main__':
         print(f"category value is wrong: {sys.argv[2]}")
         exit(1)
     remove_all_files_in_folder(config.UTILS_DIR + '/temp')
+    config.created = datetime.now()
     main(result_file_type, purpose, category, search, page_num)
 

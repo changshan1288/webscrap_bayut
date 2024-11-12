@@ -62,11 +62,9 @@ class MySQLDatabase:
                 print(f"Duplicated id: {item['id']}")
             else:
                 print(f"Updated id: {item['id']}")
-                config.update += 1
                 self.update_item(item)
         else:
             print(f"Inserting new item with id: {item['id']}")
-            config.insert += 1
             self.insert_item(item)
 
     def update_item(self, json_data):
@@ -186,15 +184,75 @@ class MySQLDatabase:
         self.execute_query(create_table_sql)
         create_table_sql = f"""
                             CREATE TABLE IF NOT EXISTS {config.STATUS_TABLE_NAME} (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            title VARCHAR(255),
-                            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"""
+                            ID INT AUTO_INCREMENT PRIMARY KEY,
+                            PROJECT_NAME VARCHAR(255),
+                            ISSUE_TYPE VARCHAR(255),
+                            ISSUE_COUNTS INT,
+                            ERROR_MESSAGE VARCHAR(255),
+                            STATUS VARCHAR(255),
+                            EXECUTION_TIME TIMESTAMP,
+                            CREATED TIMESTAMP);"""
         self.execute_query(create_table_sql)
-    def insert_status(self, title=None):
-        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} (title) VALUES (%s);"""
-        if title is None:
-            title = "bayut scrap start"
-        self.execute_query(insert_query, title)
+
+        create_table_sql = f"""
+                            CREATE TABLE IF NOT EXISTS {config.TRAND_TABLE_NAME} (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                ownerID INT,
+                                title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                                baths INT,
+                                rooms INT,
+                                price FLOAT,
+                                createdAt DATETIME,
+                                updatedAt DATETIME,
+                                reactivatedAt DATETIME,
+                                area FLOAT,
+                                plotArea FLOAT,
+                                location VARCHAR(255),
+                                category VARCHAR(255),
+                                mobile VARCHAR(20),
+                                phone VARCHAR(20),
+                                whatsapp VARCHAR(20),
+                                proxyPhone VARCHAR(20),
+                                contactName VARCHAR(255),
+                                permitNumber VARCHAR(100),
+                                ded VARCHAR(50),
+                                rera VARCHAR(50),
+                                orn VARCHAR(50),
+                                description TEXT,
+                                type_value VARCHAR(50),
+                                purpose VARCHAR(50),
+                                reference_no VARCHAR(50),
+                                completion VARCHAR(50),
+                                furnishing VARCHAR(50),
+                                truCheck VARCHAR(50),
+                                added_on VARCHAR(50),
+                                handover_date VARCHAR(50),
+                                ownerAgent VARCHAR(255),
+                                agency VARCHAR(255),
+                                property_link VARCHAR(255),
+                                size_value VARCHAR(255),
+                                building_name VARCHAR(255),
+                                park_spaces INT,
+                                floors INT,
+                                building_area VARCHAR(255),
+                                swimming_pools INT,
+                                elevators INT,
+                                offices INT,
+                                shops INT,
+                                developers VARCHAR(255),
+                                built_up_Area VARCHAR(255),
+                                usage_value VARCHAR(255),
+                                parking_availability VARCHAR(255),
+                                retail_centres VARCHAR(255),
+                                ownership VARCHAR(255),
+                                is_available TINYINT(1),
+                                date DATETIME,
+                            );
+                        """
+        self.execute_query(create_table_sql)
+    def insert_log(self, item):
+        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+        self.execute_query(insert_query, item)
 
     def insert_item(self, item):
         insert_query = f"""
@@ -221,4 +279,31 @@ class MySQLDatabase:
                     %(ownerAgent)s, %(agency)s, %(property_link)s, %(is_available)s
                 )
                 """
+        self.execute_query(insert_query, item)
+
+    def insert_item_for_trand(self, item):
+        insert_query = f"""
+            INSERT INTO {config.TRAND_TABLE_NAME} (
+                id, ownerID, title, baths, rooms, price, createdAt, updatedAt,
+                reactivatedAt, area, plotArea, location, category, mobile, phone,
+                whatsapp, proxyPhone, contactName, permitNumber, ded, rera, orn,
+                type_value, purpose, reference_no, completion, furnishing, truCheck, added_on,
+                handover_date, description, size_value, building_name, park_spaces, floors,
+                building_area, swimming_pools, elevators, offices, shops, developers,
+                built_up_Area, usage_value, parking_availability, retail_centres, ownership, ownerAgent,
+                agency, property_link, is_available, date
+            ) VALUES (
+                %(id)s, %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
+                %(updatedAt)s, %(reactivatedAt)s, %(area)s, %(plotArea)s, %(location)s,
+                %(category)s, %(mobile)s, %(phone)s, %(whatsapp)s, %(proxyPhone)s, 
+                %(contactName)s, %(permitNumber)s, %(ded)s, %(rera)s, %(orn)s, %(type)s,
+                %(purpose)s, %(reference_no)s, %(completion)s, %(furnishing)s, 
+                %(truCheck)s, %(added_on)s, %(handover_date)s, %(description)s, 
+                %(size)s, %(building_name)s, %(park_spaces)s, %(floors)s, 
+                %(building_area)s, %(swimming_pools)s, %(elevators)s, 
+                %(offices)s, %(shops)s, %(developers)s, %(built_up_Area)s, 
+                %(usage)s, %(parking_availability)s,  %(retail_centres)s, %(ownership)s,
+                %(ownerAgent)s, %(agency)s, %(property_link)s, %(is_available)s, {config.created}
+            )
+            """
         self.execute_query(insert_query, item)
