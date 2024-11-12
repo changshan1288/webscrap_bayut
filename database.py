@@ -190,8 +190,8 @@ class MySQLDatabase:
                             ISSUE_COUNTS INT,
                             ERROR_MESSAGE VARCHAR(255),
                             STATUS VARCHAR(255),
-                            EXECUTION_TIME TIMESTAMP,
-                            CREATED TIMESTAMP
+                            EXECUTION_TIME DATETIME,
+                            CREATED DATETIME
                         );
                 """
         self.execute_query(create_table_sql)
