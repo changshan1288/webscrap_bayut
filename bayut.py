@@ -44,8 +44,6 @@ def main(file_type, purpose, category, search, page_num):
         results = json_data.get("results")
         hints = results[0].get("hits")
 
-        webbrowser.open("")
-
         for hit in hints:
             download_webpage(hit.get("externalID"))
         for hit in hints:

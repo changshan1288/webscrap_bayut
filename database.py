@@ -254,7 +254,10 @@ class MySQLDatabase:
                         """
         self.execute_query(create_table_sql)
     def insert_log(self, item):
-        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (%s, %s, %s, %s, %s, %s, %s);"""
+        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (
+                            %(PROJECT_NAME)s, %(ISSUE_TYPE)s, %(ISSUE_COUNTS)s, %(ERROR_MESSAGE)s, %(STATUS)s, %(EXECUTION_TIME)s, %(CREATED)s
+                        );
+                    """
         self.execute_query(insert_query, item)
 
     def insert_item(self, item):
@@ -288,7 +291,7 @@ class MySQLDatabase:
         item["created"] = config.created
         insert_query = f"""
             INSERT INTO {config.TRAND_TABLE_NAME} (
-                id, ownerID, title, baths, rooms, price, createdAt, updatedAt,
+                ownerID, title, baths, rooms, price, createdAt, updatedAt,
                 reactivatedAt, area, plotArea, location, category, mobile, phone,
                 whatsapp, proxyPhone, contactName, permitNumber, ded, rera, orn,
                 type_value, purpose, reference_no, completion, furnishing, truCheck, added_on,
@@ -297,7 +300,7 @@ class MySQLDatabase:
                 built_up_Area, usage_value, parking_availability, retail_centres, ownership, ownerAgent,
                 agency, property_link, is_available, scrap_date
             ) VALUES (
-                %(id)s, %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
+                %(ownerID)s, %(title)s, %(baths)s, %(rooms)s, %(price)s, %(createdAt)s,
                 %(updatedAt)s, %(reactivatedAt)s, %(area)s, %(plotArea)s, %(location)s,
                 %(category)s, %(mobile)s, %(phone)s, %(whatsapp)s, %(proxyPhone)s, 
                 %(contactName)s, %(permitNumber)s, %(ded)s, %(rera)s, %(orn)s, %(type)s,
