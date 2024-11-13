@@ -34,8 +34,6 @@ def main(file_type, purpose, category, search, page_num):
 
     config.count = 0
 
-    webbrowser.open('https://www.bayut.com/')
-
     while True:
         print(f"page_num: {page_num+1}")
 
@@ -75,6 +73,7 @@ def main(file_type, purpose, category, search, page_num):
             db.insert_log(log_data)
             break
         page_num += 1
+    db.close_connection()
 
 def remove_all_files_in_folder(folder_path):
     path = Path(folder_path)
