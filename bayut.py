@@ -118,14 +118,17 @@ def get_detail_information(externalID):
 def download_webpage(externalID):
 
     url = f"https://www.bayut.com/property/details-{externalID}.html"
-
+    refind = 0
     while True:
         filename = f'webpage{externalID}.mhtml'
         try:
             if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(1)
+                for _ in range(refind):
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(1)
                 break
+            else:
+                refind += 1
             webbrowser.open(url)
 
             time.sleep(3)
@@ -147,9 +150,12 @@ def download_webpage(externalID):
             time.sleep(1)
 
             if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
-                pyautogui.hotkey('ctrl', 'w')
-                time.sleep(1)
+                for _ in range(refind):
+                    pyautogui.hotkey('ctrl', 'w')
+                    time.sleep(1)
                 break
+            else:
+                refind += 1
         except pyautogui.FailSafeException:
             config.db.insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
         except pyautogui.ImageNotFoundException:
