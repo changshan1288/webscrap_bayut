@@ -1,6 +1,6 @@
+from datetime import datetime
 import pymysql
 import config
-from bayut import insert_status_log
 
 
 class MySQLDatabase:
@@ -25,7 +25,7 @@ class MySQLDatabase:
             )
             print("Connected to the MySQL database.")
         except pymysql.MySQLError as e:
-            insert_status_log("ERROR", f"Failed to connect to MySQL: {e}")
+            self.insert_status_log("ERROR", f"Failed to connect to MySQL: {e}")
 
     def close_connection(self):
         """Close the MySQL database connection."""
@@ -42,7 +42,7 @@ class MySQLDatabase:
                 self.connection.commit()
                 print("Query executed successfully.")
         except pymysql.MySQLError as e:
-            insert_status_log("ERROR", f"Failed to execute query: {e}")
+            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
 
     def fetch_all(self, query, params=None):
         """Execute a query and fetch all results."""
@@ -52,7 +52,7 @@ class MySQLDatabase:
                 result = cursor.fetchall()
                 return result
         except pymysql.MySQLError as e:
-            insert_status_log("ERROR", f"Failed to fetch data: {e}")
+            self.insert_status_log("ERROR", f"Failed to fetch data: {e}")
             return None
     def check_item_and_update_or_insert(self, item):
         query = (f"SELECT updatedAt FROM {config.TABLE_NAME} WHERE id = %s")
@@ -262,6 +262,20 @@ class MySQLDatabase:
                     """
         self.execute_query(insert_query, item)
 
+    def insert_status_log(self, status, error=""):
+        end_time = datetime.now()
+        execution_time = end_time - config.created
+        log_data = {
+            "PROJECT_NAME": "Bayut Scrap",
+            "ISSUE_TYPE": "",
+            "ISSUE_COUNTS": config.count,
+            "ERROR_MESSAGE": error,
+            "STATUS": status,
+            "EXECUTION_TIME": str(execution_time),
+            "CREATED": config.created
+        }
+        self.insert_log(log_data)
+        self.close_connection()
     def insert_item(self, item):
         insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (

@@ -4,11 +4,9 @@ import time
 import requests
 import config
 import json
-import csv
 import webbrowser
 import pyautogui
 from lxml import html
-
 from database import MySQLDatabase
 import email
 from pathlib import Path
@@ -54,24 +52,11 @@ def main(purpose, category, search, page_num):
         remove_all_files_in_folder(config.UTILS_DIR + '/temp')
         time.sleep(3)
         if len(hints) == 0:
-            insert_status_log("SUCCESS")
+            config.db.insert_status_log("SUCCESS")
             break
         page_num += 1
 
-def insert_status_log(status, error = ""):
-    end_time = datetime.now()
-    execution_time = end_time - config.created
-    log_data = {
-        "PROJECT_NAME": "Bayut Scrap",
-        "ISSUE_TYPE": "",
-        "ISSUE_COUNTS": config.count,
-        "ERROR_MESSAGE": error,
-        "STATUS": status,
-        "EXECUTION_TIME": str(execution_time),
-        "CREATED": config.created
-    }
-    config.db.insert_log(log_data)
-    config.db.close_connection()
+
 
 def remove_all_files_in_folder(folder_path):
     path = Path(folder_path)
@@ -127,7 +112,7 @@ def get_detail_information(externalID):
                     data[key] = value
         json_data = json.dumps(data, indent=4)
     except FileNotFoundError:
-        print(f"File not found: {filename}")
+        config.db.insert_status_log("ERROR", f"File not found: {filename}")
     return json_data
 
 def download_webpage(externalID):
@@ -166,11 +151,11 @@ def download_webpage(externalID):
                 time.sleep(1)
                 break
         except pyautogui.FailSafeException:
-            insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
+            config.db.insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
         except pyautogui.ImageNotFoundException:
-            insert_status_log("ERROR", "Image not found on the screen.")
+            config.db.insert_status_log("ERROR", "Image not found on the screen.")
         except Exception as e:
-            insert_status_log("ERROR", f"An unexpected error occurred: {e}")
+            config.db.insert_status_log("ERROR", f"An unexpected error occurred: {e}")
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
