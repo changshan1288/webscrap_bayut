@@ -21,3 +21,5 @@ TRAND_TABLE_NAME = os.getenv("TRAND_TABLE_NAME")
 count = 0
 
 created = ""
+
+db = ""

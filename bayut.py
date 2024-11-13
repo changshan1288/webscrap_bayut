@@ -15,17 +15,17 @@ from pathlib import Path
 from datetime import datetime
 from utils import get_extracted_data, get_raw_data, get_params, get_headers, get_request_url
 
-def main(file_type, purpose, category, search, page_num):
-    db = MySQLDatabase(
+def main(purpose, category, search, page_num):
+    config.db = MySQLDatabase(
         host=config.MYSQL_HOST,
         user=config.MYSQL_USER,
         password=config.MYSQL_PASSWORD,
         database=config.MYSQL_DB
     )
 
-    db.open_connection()
+    config.db.open_connection()
 
-    db.init_table()
+    config.db.init_table()
 
     url = get_request_url()
     params = get_params()
@@ -36,7 +36,6 @@ def main(file_type, purpose, category, search, page_num):
 
     while True:
         print(f"page_num: {page_num+1}")
-
         raw_data = get_raw_data(page_num, purpose, category, search)
 
         response = requests.post(url, params=params, json=raw_data, headers=headers)
@@ -48,32 +47,31 @@ def main(file_type, purpose, category, search, page_num):
         for hit in hints:
             download_webpage(hit.get("externalID"))
         for hit in hints:
-            property = get_detail_information(hit.get("externalID"))
-            item = get_extracted_data(hit, property)
-            if file_type != "csv":
-                db.check_item_and_update_or_insert(item)
-            else:
-                save_csv_file(config.count, item)
+            extracted_data = get_detail_information(hit.get("externalID"))
+            item = get_extracted_data(hit, extracted_data)
+            config.db.check_item_and_update_or_insert(item)
             config.count += 1
         remove_all_files_in_folder(config.UTILS_DIR + '/temp')
         time.sleep(3)
         if len(hints) == 0:
-            print(f"Total of items is {config.count}.")
-            end_time = datetime.now()
-            execution_time = end_time - config.created
-            log_data = {
-                "PROJECT_NAME": "Bayut Scrap",
-                "ISSUE_TYPE": "",
-                "ISSUE_COUNTS": config.count,
-                "ERROR_MESSAGE": "",
-                "STATUS": "SUCCESS",
-                "EXECUTION_TIME": str(execution_time),
-                "CREATED": config.created
-            }
-            db.insert_log(log_data)
+            insert_status_log("SUCCESS")
             break
         page_num += 1
-    db.close_connection()
+
+def insert_status_log(status, error = ""):
+    end_time = datetime.now()
+    execution_time = end_time - config.created
+    log_data = {
+        "PROJECT_NAME": "Bayut Scrap",
+        "ISSUE_TYPE": "",
+        "ISSUE_COUNTS": config.count,
+        "ERROR_MESSAGE": error,
+        "STATUS": status,
+        "EXECUTION_TIME": str(execution_time),
+        "CREATED": config.created
+    }
+    config.db.insert_log(log_data)
+    config.db.close_connection()
 
 def remove_all_files_in_folder(folder_path):
     path = Path(folder_path)
@@ -82,17 +80,10 @@ def remove_all_files_in_folder(folder_path):
             if file.is_file():  # Check if it is a file
                 file.unlink()
 
-def save_csv_file(count, item):
-    csv_file = 'result/bayut.csv'
-    with open(csv_file, mode='a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        if count == 0:
-            writer.writerow(item.keys())
-        writer.writerow(item.values())
-        print(f"Inserting new item with id: {item['id']}")
+
 def get_detail_information(externalID):
     filename = f"{config.UTILS_DIR}/temp/webpage{externalID}.mhtml"
-    json_data2 = ""
+    json_data = ""
     try:
         with open(filename, 'rb') as mhtml_file:
             # Parse the mhtml content
@@ -134,10 +125,10 @@ def get_detail_information(externalID):
                     # Clean up whitespace
                     value = ' '.join(text.strip() for text in value if text.strip())
                     data[key] = value
-        json_data2 = json.dumps(data, indent=4)
+        json_data = json.dumps(data, indent=4)
     except FileNotFoundError:
         print(f"File not found: {filename}")
-    return json_data2
+    return json_data
 
 def download_webpage(externalID):
 
@@ -175,29 +166,26 @@ def download_webpage(externalID):
                 time.sleep(1)
                 break
         except pyautogui.FailSafeException:
-            pyautogui.moveTo(500, 500)
+            insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
+        except pyautogui.ImageNotFoundException:
+            insert_status_log("ERROR", "Image not found on the screen.")
+        except Exception as e:
+            insert_status_log("ERROR", f"An unexpected error occurred: {e}")
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
     categories = ["residential", "commercial"]
-    result_file_type = sys.argv[1]
-    purpose = sys.argv[2]
-    category = sys.argv[3]
+    purpose = sys.argv[1]
+    category = sys.argv[2]
     search = None
     page_num = 0
+    if len(sys.argv) > 3:
+        search = sys.argv[3]
     if len(sys.argv) > 4:
-        search = sys.argv[4]
-    if len(sys.argv) > 5:
-        page_num = int(sys.argv[5])
+        page_num = int(sys.argv[4])
 
-    if not purpose in purposes:
-        print(f"Purpose value is wrong: {sys.argv[1]}")
-        exit(1)
-    if not category in categories:
-        print(f"category value is wrong: {sys.argv[2]}")
-        exit(1)
     remove_all_files_in_folder(config.UTILS_DIR + '/temp')
     config.created = datetime.now()
     print(f"scrap start : {config.created}")
-    main(result_file_type, purpose, category, search, page_num)
+    main(purpose, category, search, page_num)
 

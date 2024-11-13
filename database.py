@@ -1,5 +1,8 @@
 import pymysql
 import config
+from bayut import insert_status_log
+
+
 class MySQLDatabase:
     def __init__(self, host, user, password, database, port=3306):
         """Initialize the MySQLDatabase class with connection parameters."""
@@ -22,7 +25,7 @@ class MySQLDatabase:
             )
             print("Connected to the MySQL database.")
         except pymysql.MySQLError as e:
-            print(f"Failed to connect to MySQL: {e}")
+            insert_status_log("ERROR", f"Failed to connect to MySQL: {e}")
 
     def close_connection(self):
         """Close the MySQL database connection."""
@@ -39,7 +42,7 @@ class MySQLDatabase:
                 self.connection.commit()
                 print("Query executed successfully.")
         except pymysql.MySQLError as e:
-            print(f"Failed to execute query: {e}")
+            insert_status_log("ERROR", f"Failed to execute query: {e}")
 
     def fetch_all(self, query, params=None):
         """Execute a query and fetch all results."""
@@ -49,7 +52,7 @@ class MySQLDatabase:
                 result = cursor.fetchall()
                 return result
         except pymysql.MySQLError as e:
-            print(f"Failed to fetch data: {e}")
+            insert_status_log("ERROR", f"Failed to fetch data: {e}")
             return None
     def check_item_and_update_or_insert(self, item):
         query = (f"SELECT updatedAt FROM {config.TABLE_NAME} WHERE id = %s")
@@ -95,7 +98,6 @@ class MySQLDatabase:
                     WHERE id = %s
                     """
 
-        # Prepare the values to be updated
         values = (
             json_data['ownerID'], json_data['title'],
             json_data['baths'], json_data['rooms'],
