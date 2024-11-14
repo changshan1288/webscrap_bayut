@@ -1,8 +1,7 @@
 from datetime import datetime
+import pymysql
 import config
 
-import mysql.connector
-from mysql.connector import Error
 
 class MySQLDatabaseOther:
     def __init__(self, host, user, password, database, port=3306):
@@ -13,45 +12,40 @@ class MySQLDatabaseOther:
         self.database = database
         self.port = port
         self.connection = None
-        self.cursor = None
 
     def open_connection(self):
+
         try:
-            self.connection = mysql.connector.connect(
+            self.connection = pymysql.connect(
                 host=self.host,
                 user=self.user,
                 password=self.password,
                 database=self.database,
-                port=self.port,
-                connection_timeout=60,  # Connection timeout in seconds
-                use_pure=True
+                port=self.port
             )
-
-            if self.connection.is_connected():
-                self.cursor = self.connection.cursor()
-                self.cursor.execute(f"USE {self.database}")
-                print("Successfully connected to MySQL database")
-        except Error as e:
-            print("Error while connecting to MySQL", e)
+            print("Connected to the MySQL database.")
+        except pymysql.MySQLError as e:
+            print(f"Failed to connect to MySQL: {e}")
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
 
     def close_connection(self):
-        """Close the cursor and the database connection."""
-        if self.cursor:
-            self.cursor.close()
-        if self.connection and self.connection.is_connected():
+        """Close the MySQL database connection."""
+        if self.connection:
             self.connection.close()
-        print("MySQL connection is closed")
+            self.connection = None
+            print("MySQL connection closed.")
 
     def execute_query(self, query, params=None):
-        if self.connection is None or not self.connection.is_connected():
-            print("Connection is not established. Please connect first.")
-            return
         try:
-            self.cursor.execute(query, params)
-            self.connection.commit()
-        except Error as e:
-            print("Error while inserting data into MySQL", e)
-            self.insert_status_log("ERROR", f"Error while inserting data into MySQL: {e}")
+            with self.connection.cursor() as cursor:
+                cursor.execute(query, params)
+                self.connection.commit()
+                print("[INFO] Insert Item successfully.")
+        except pymysql.MySQLError as e:
+            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
+        except Exception as e:
+            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
 
     def init_table(self):
         create_table_sql = f"""

@@ -1,6 +1,5 @@
 from datetime import datetime
-import mysql.connector
-from mysql.connector import Error
+import pymysql
 import config
 
 
@@ -13,61 +12,53 @@ class MySQLDatabase:
         self.database = database
         self.port = port
         self.connection = None
-        self.cursor = None
 
     def open_connection(self):
         try:
-            self.connection = mysql.connector.connect(
+            self.connection = pymysql.connect(
                 host=self.host,
                 user=self.user,
                 password=self.password,
                 database=self.database,
-                port=self.port,
-                connection_timeout=60,  # Connection timeout in seconds
-                use_pure=True
+                port=self.port
             )
+            print("Connected to the MySQL database.")
+        except pymysql.MySQLError as e:
+            print(f"Failed to connect to MySQL: {e}")
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
 
-            if self.connection.is_connected():
-                self.cursor = self.connection.cursor()
-                self.cursor.execute(f"USE {self.database}")
-                print("Successfully connected to MySQL database")
-        except Error as e:
-            print("Error while connecting to MySQL", e)
 
     def close_connection(self):
-        """Close the cursor and the database connection."""
-        if self.cursor:
-            self.cursor.close()
-        if self.connection and self.connection.is_connected():
+        """Close the MySQL database connection."""
+        if self.connection:
             self.connection.close()
-        print("MySQL connection is closed")
+            self.connection = None
+            print("MySQL connection closed.")
 
     def execute_query(self, query, params=None):
-        if self.connection is None or not self.connection.is_connected():
-            print("Connection is not established. Please connect first.")
-            return
         try:
-            self.cursor.execute(query, params)
-            self.connection.commit()  # Committing the transaction
-            print(f"{self.cursor.rowcount} rows inserted successfully.")
-        except Error as e:
-            config.status_db.insert_status_log("ERROR", f"Error while inserting data into MySQL: {e}")
+            with self.connection.cursor() as cursor:
+                cursor.execute(query, params)
+                self.connection.commit()
+                print("[INFO] Insert Item successfully.")
+        except pymysql.MySQLError as e:
+            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
+        except Exception as e:
+            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
 
     def fetch_all(self, query, params=None):
-
-        if self.connection is None or not self.connection.is_connected():
-            print("Connection is not established. Please connect first.")
-            return
-
+        """Execute a query and fetch all results."""
         try:
-            # Execute the query to fetch all rows
-            self.cursor.execute(query, params)
-            # Fetch all rows and return them
-            records = self.cursor.fetchall()
-            return records
-
-        except Error as e:
-            config.status_db.insert_status_log("ERROR", f"Error while fetching data from MySQL: {e}")
+            with self.connection.cursor() as cursor:
+                cursor.execute(query, params)
+                result = cursor.fetchall()
+                return result
+        except pymysql.MySQLError as e:
+            self.insert_status_log("ERROR", f"Failed to fetch data: {e}")
+            return None
+        except Exception as e:
+            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
             return None
 
     def check_item_and_update_or_insert(self, item):
@@ -85,7 +76,7 @@ class MySQLDatabase:
         else:
             print(f"Inserting new item with id: {item['id']}")
             self.insert_item(item)
-        self.insert_item_for_trend(item)
+        self.insert_item_for_trand(item)
 
     def update_item(self, json_data):
         update_query = f"""
@@ -146,9 +137,6 @@ class MySQLDatabase:
         self.execute_query(update_query, values)
 
     def init_table(self):
-        if self.connection is None or not self.connection.is_connected():
-            print("Connection is not established. Please connect first.")
-            return
         create_table_sql = f"""
                     CREATE TABLE IF NOT EXISTS {config.TABLE_NAME} (
                         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -204,64 +192,97 @@ class MySQLDatabase:
                     );
                 """
         self.execute_query(create_table_sql)
-
         create_table_sql = f"""
-                    CREATE TABLE IF NOT EXISTS {config.TRAND_TABLE_NAME} (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        ownerID INT,
-                        title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-                        baths INT,
-                        rooms INT,
-                        price FLOAT,
-                        createdAt DATETIME,
-                        updatedAt DATETIME,
-                        reactivatedAt DATETIME,
-                        area FLOAT,
-                        plotArea FLOAT,
-                        location VARCHAR(255),
-                        category VARCHAR(255),
-                        mobile VARCHAR(20),
-                        phone VARCHAR(20),
-                        whatsapp VARCHAR(20),
-                        proxyPhone VARCHAR(20),
-                        contactName VARCHAR(255),
-                        permitNumber VARCHAR(100),
-                        ded VARCHAR(50),
-                        rera VARCHAR(50),
-                        orn VARCHAR(50),
-                        description TEXT,
-                        type_value VARCHAR(50),
-                        purpose VARCHAR(50),
-                        reference_no VARCHAR(50),
-                        completion VARCHAR(50),
-                        furnishing VARCHAR(50),
-                        truCheck VARCHAR(50),
-                        added_on VARCHAR(50),
-                        handover_date VARCHAR(50),
-                        ownerAgent VARCHAR(255),
-                        agency VARCHAR(255),
-                        property_link VARCHAR(255),
-                        size_value VARCHAR(255),
-                        building_name VARCHAR(255),
-                        park_spaces INT,
-                        floors INT,
-                        building_area VARCHAR(255),
-                        swimming_pools INT,
-                        elevators INT,
-                        offices INT,
-                        shops INT,
-                        developers VARCHAR(255),
-                        built_up_Area VARCHAR(255),
-                        usage_value VARCHAR(255),
-                        parking_availability VARCHAR(255),
-                        retail_centres VARCHAR(255),
-                        ownership VARCHAR(255),
-                        is_available TINYINT(1),
-                        scrap_date DATETIME
-                    );
+                            CREATE TABLE IF NOT EXISTS {config.STATUS_TABLE_NAME} (
+                            ID INT AUTO_INCREMENT PRIMARY KEY,
+                            PROJECT_NAME VARCHAR(255),
+                            ISSUE_TYPE VARCHAR(255),
+                            ISSUE_COUNTS INT,
+                            ERROR_MESSAGE VARCHAR(255),
+                            STATUS VARCHAR(255),
+                            EXECUTION_TIME TIME,
+                            CREATED DATETIME
+                        );
                 """
         self.execute_query(create_table_sql)
 
+        create_table_sql = f"""
+                            CREATE TABLE IF NOT EXISTS {config.TRAND_TABLE_NAME} (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                ownerID INT,
+                                title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+                                baths INT,
+                                rooms INT,
+                                price FLOAT,
+                                createdAt DATETIME,
+                                updatedAt DATETIME,
+                                reactivatedAt DATETIME,
+                                area FLOAT,
+                                plotArea FLOAT,
+                                location VARCHAR(255),
+                                category VARCHAR(255),
+                                mobile VARCHAR(20),
+                                phone VARCHAR(20),
+                                whatsapp VARCHAR(20),
+                                proxyPhone VARCHAR(20),
+                                contactName VARCHAR(255),
+                                permitNumber VARCHAR(100),
+                                ded VARCHAR(50),
+                                rera VARCHAR(50),
+                                orn VARCHAR(50),
+                                description TEXT,
+                                type_value VARCHAR(50),
+                                purpose VARCHAR(50),
+                                reference_no VARCHAR(50),
+                                completion VARCHAR(50),
+                                furnishing VARCHAR(50),
+                                truCheck VARCHAR(50),
+                                added_on VARCHAR(50),
+                                handover_date VARCHAR(50),
+                                ownerAgent VARCHAR(255),
+                                agency VARCHAR(255),
+                                property_link VARCHAR(255),
+                                size_value VARCHAR(255),
+                                building_name VARCHAR(255),
+                                park_spaces INT,
+                                floors INT,
+                                building_area VARCHAR(255),
+                                swimming_pools INT,
+                                elevators INT,
+                                offices INT,
+                                shops INT,
+                                developers VARCHAR(255),
+                                built_up_Area VARCHAR(255),
+                                usage_value VARCHAR(255),
+                                parking_availability VARCHAR(255),
+                                retail_centres VARCHAR(255),
+                                ownership VARCHAR(255),
+                                is_available TINYINT(1),
+                                scrap_date DATETIME
+                            );
+                        """
+        self.execute_query(create_table_sql)
+    def insert_log(self, item):
+        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (
+                            %(PROJECT_NAME)s, %(ISSUE_TYPE)s, %(ISSUE_COUNTS)s, %(ERROR_MESSAGE)s, %(STATUS)s, %(EXECUTION_TIME)s, %(CREATED)s
+                        );
+                    """
+        self.execute_query(insert_query, item)
+
+    def insert_status_log(self, status, error=""):
+        end_time = datetime.now()
+        execution_time = end_time - config.created
+        log_data = {
+            "PROJECT_NAME": "Bayut Scrap",
+            "ISSUE_TYPE": "",
+            "ISSUE_COUNTS": config.count,
+            "ERROR_MESSAGE": error,
+            "STATUS": status,
+            "EXECUTION_TIME": str(execution_time),
+            "CREATED": config.created
+        }
+        self.insert_log(log_data)
+        self.close_connection()
     def insert_item(self, item):
         insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (
@@ -289,7 +310,7 @@ class MySQLDatabase:
                 """
         self.execute_query(insert_query, item)
 
-    def insert_item_for_trend(self, item):
+    def insert_item_for_trand(self, item):
         item["created"] = config.created
         insert_query = f"""
             INSERT INTO {config.TRAND_TABLE_NAME} (
