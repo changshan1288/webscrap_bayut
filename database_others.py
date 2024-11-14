@@ -43,9 +43,9 @@ class MySQLDatabaseOther:
                 self.connection.commit()
                 print("[INFO] Insert Item successfully.")
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
+            print(f"Failed to execute query: {e}")
         except Exception as e:
-            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
+            print(f"Unexpected error occurred: {e}")
 
     def init_table(self):
         create_table_sql = f"""
