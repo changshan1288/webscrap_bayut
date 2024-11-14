@@ -29,6 +29,7 @@ class MySQLDatabaseOther:
 
             if self.connection.is_connected():
                 self.cursor = self.connection.cursor()
+                self.cursor.execute(f"USE {self.database}")
                 print("Successfully connected to MySQL database")
         except Error as e:
             print("Error while connecting to MySQL", e)
@@ -47,8 +48,7 @@ class MySQLDatabaseOther:
             return
         try:
             self.cursor.execute(query, params)
-            self.connection.commit()  # Committing the transaction
-            print(f"{self.cursor.rowcount} rows inserted successfully.")
+            self.connection.commit()
         except Error as e:
             print("Error while inserting data into MySQL", e)
             self.insert_status_log("ERROR", f"Error while inserting data into MySQL: {e}")

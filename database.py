@@ -13,6 +13,7 @@ class MySQLDatabase:
         self.database = database
         self.port = port
         self.connection = None
+        self.cursor = None
 
     def open_connection(self):
         try:
@@ -28,6 +29,7 @@ class MySQLDatabase:
 
             if self.connection.is_connected():
                 self.cursor = self.connection.cursor()
+                self.cursor.execute(f"USE {self.database}")
                 print("Successfully connected to MySQL database")
         except Error as e:
             print("Error while connecting to MySQL", e)
