@@ -43,9 +43,9 @@ class MySQLDatabase:
                 self.connection.commit()
                 print("[INFO] Insert Item successfully.")
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
+            config.status_db.insert_status_log("ERROR", f"Failed to execute query: {e}")
         except Exception as e:
-            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
+            config.status_db.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
 
     def fetch_all(self, query, params=None):
         """Execute a query and fetch all results."""
@@ -55,10 +55,10 @@ class MySQLDatabase:
                 result = cursor.fetchall()
                 return result
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to fetch data: {e}")
+            config.status_db.insert_status_log("ERROR", f"Failed to fetch data: {e}")
             return None
         except Exception as e:
-            self.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
+            config.status_db.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
             return None
 
     def check_item_and_update_or_insert(self, item):
