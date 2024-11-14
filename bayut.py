@@ -11,19 +11,11 @@ from database import MySQLDatabase
 import email
 from pathlib import Path
 from datetime import datetime
+
+from database_others import MySQLDatabaseOther
 from utils import get_extracted_data, get_raw_data, get_params, get_headers, get_request_url
 
 def main(purpose, category, search, page_num):
-    config.db = MySQLDatabase(
-        host=config.MYSQL_HOST,
-        user=config.MYSQL_USER,
-        password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
-    )
-
-    config.db.open_connection()
-
-    config.db.init_table()
 
     url = get_request_url()
     params = get_params()
@@ -47,12 +39,12 @@ def main(purpose, category, search, page_num):
         for hit in hints:
             extracted_data = get_detail_information(hit.get("externalID"))
             item = get_extracted_data(hit, extracted_data)
-            config.db.check_item_and_update_or_insert(item)
+            config.main_db.check_item_and_update_or_insert(item)
             config.count += 1
         remove_all_files_in_folder(config.UTILS_DIR + '/temp')
         time.sleep(3)
         if len(hints) == 0:
-            config.db.insert_status_log("SUCCESS")
+            config.status_db.insert_status_log("SUCCESS")
             break
         page_num += 1
 
@@ -112,7 +104,7 @@ def get_detail_information(externalID):
                     data[key] = value
         json_data = json.dumps(data, indent=4)
     except FileNotFoundError:
-        config.db.insert_status_log("ERROR", f"File not found: {filename}")
+        config.status_db.insert_status_log("ERROR", f"File not found: {filename}")
     return json_data
 
 def download_webpage(externalID):
@@ -157,11 +149,11 @@ def download_webpage(externalID):
             else:
                 refind += 1
         except pyautogui.FailSafeException:
-            config.db.insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
+            config.status_db.insert_status_log("ERROR", "Fail-safe triggered! Mouse moved to the corner.")
         except pyautogui.ImageNotFoundException:
-            config.db.insert_status_log("ERROR", "Image not found on the screen.")
+            config.status_db.insert_status_log("ERROR", "Image not found on the screen.")
         except Exception as e:
-            config.db.insert_status_log("ERROR", f"An unexpected error occurred: {e}")
+            config.status_db.insert_status_log("ERROR", f"An unexpected error occurred: {e}")
 
 if __name__ == '__main__':
     purposes = ["for-sale", "for-rent"]
@@ -178,5 +170,26 @@ if __name__ == '__main__':
     remove_all_files_in_folder(config.UTILS_DIR + '/temp')
     config.created = datetime.now()
     print(f"scrap start : {config.created}")
+
+    config.main_db = MySQLDatabase(
+        host=config.MYSQL_HOST,
+        user=config.MYSQL_USER,
+        password=config.MYSQL_PASSWORD,
+        database=config.MYSQL_DB
+    )
+
+    config.status_db = MySQLDatabaseOther(
+        host=config.MYSQL_HOST,
+        user=config.MYSQL_USER,
+        password=config.MYSQL_PASSWORD,
+        database=config.MYSQL_DB_OTHERS
+    )
+
+    config.main_db.open_connection()
+    config.status_db.open_connection()
+
+    config.main_db.init_table()
+    config.status_db.init_table()
+
     main(purpose, category, search, page_num)
 

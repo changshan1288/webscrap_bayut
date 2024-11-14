@@ -25,7 +25,9 @@ class MySQLDatabase:
             )
             print("Connected to the MySQL database.")
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to connect to MySQL: {e}")
+            print(f"Failed to connect to MySQL: {e}")
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
 
     def close_connection(self):
         """Close the MySQL database connection."""
@@ -40,9 +42,11 @@ class MySQLDatabase:
             with self.connection.cursor() as cursor:
                 cursor.execute(query, params)
                 self.connection.commit()
-                print("Query executed successfully.")
+                print("[INFO] Insert Item successfully.")
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to execute query: {e}")
+            config.status_db.insert_status_log("ERROR", f"Failed to execute query: {e}")
+        except Exception as e:
+            config.status_db.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
 
     def fetch_all(self, query, params=None):
         """Execute a query and fetch all results."""
@@ -52,8 +56,12 @@ class MySQLDatabase:
                 result = cursor.fetchall()
                 return result
         except pymysql.MySQLError as e:
-            self.insert_status_log("ERROR", f"Failed to fetch data: {e}")
+            config.status_db.insert_status_log("ERROR", f"Failed to fetch data: {e}")
             return None
+        except Exception as e:
+            config.status_db.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
+            return None
+
     def check_item_and_update_or_insert(self, item):
         query = (f"SELECT updatedAt FROM {config.TABLE_NAME} WHERE id = %s")
         result = self.fetch_all(query, item["id"])
@@ -255,27 +263,7 @@ class MySQLDatabase:
                             );
                         """
         self.execute_query(create_table_sql)
-    def insert_log(self, item):
-        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (
-                            %(PROJECT_NAME)s, %(ISSUE_TYPE)s, %(ISSUE_COUNTS)s, %(ERROR_MESSAGE)s, %(STATUS)s, %(EXECUTION_TIME)s, %(CREATED)s
-                        );
-                    """
-        self.execute_query(insert_query, item)
 
-    def insert_status_log(self, status, error=""):
-        end_time = datetime.now()
-        execution_time = end_time - config.created
-        log_data = {
-            "PROJECT_NAME": "Bayut Scrap",
-            "ISSUE_TYPE": "",
-            "ISSUE_COUNTS": config.count,
-            "ERROR_MESSAGE": error,
-            "STATUS": status,
-            "EXECUTION_TIME": str(execution_time),
-            "CREATED": config.created
-        }
-        self.insert_log(log_data)
-        self.close_connection()
     def insert_item(self, item):
         insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (
