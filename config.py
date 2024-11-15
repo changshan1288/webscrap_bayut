@@ -1,8 +1,13 @@
 import os
-
+import sys
 from dotenv import load_dotenv
 
-UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
+if getattr(sys, 'frozen', False):
+    # If running as a frozen executable (PyInstaller), use sys._MEIPASS
+    UTILS_DIR = os.path.dirname(os.path.realpath(sys.executable))
+else:
+    # If running as a regular script, use the current script's path
+    UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 load_dotenv(os.path.join(UTILS_DIR, '.env'))
 

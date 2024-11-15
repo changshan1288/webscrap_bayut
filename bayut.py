@@ -160,12 +160,14 @@ if __name__ == '__main__':
     categories = ["residential", "commercial"]
     purpose = sys.argv[1]
     category = sys.argv[2]
-    search = None
+    search = "Dubai"
     page_num = 0
     if len(sys.argv) > 3:
         search = sys.argv[3]
     if len(sys.argv) > 4:
         page_num = int(sys.argv[4])
+
+    print(f"Please set to chrome file download path: {config.UTILS_DIR + '/temp'}")
 
     remove_all_files_in_folder(config.UTILS_DIR + '/temp')
     config.created = datetime.now()

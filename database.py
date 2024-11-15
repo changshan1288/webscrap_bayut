@@ -1,10 +1,9 @@
-from datetime import datetime
 import pymysql
 import config
-
+import time
 
 class MySQLDatabase:
-    def __init__(self, host, user, password, database, port=3306):
+    def __init__(self, host, user, password, database, port=3306, timeout=80):
         """Initialize the MySQLDatabase class with connection parameters."""
         self.host = host
         self.user = user
@@ -12,6 +11,7 @@ class MySQLDatabase:
         self.database = database
         self.port = port
         self.connection = None
+        self.timeout = timeout
 
     def open_connection(self):
         try:
@@ -20,7 +20,8 @@ class MySQLDatabase:
                 user=self.user,
                 password=self.password,
                 database=self.database,
-                port=self.port
+                port=self.port,
+                connect_timeout = self.timeout,
             )
             print("Connected to the MySQL database.")
         except pymysql.MySQLError as e:
@@ -36,16 +37,48 @@ class MySQLDatabase:
             self.connection = None
             print("MySQL connection closed.")
 
+    def reconnect(self):
+        """Attempt to reconnect to the MySQL database."""
+        print("[INFO] Attempting to reconnect to MySQL...")
+        self.connection = None  # Close the current connection if it's lost
+        attempt = 0
+        max_retries = 5
+        while attempt < max_retries:
+            try:
+                self.open_connection()  # Try to re-establish the connection
+                return True
+            except pymysql.MySQLError as e:
+                print(f"[ERROR] Failed to reconnect (Attempt {attempt + 1}): {e}")
+                attempt += 1
+                time.sleep(2)  # Wait before retrying
+        print("[ERROR] Max retries reached. Could not reconnect to MySQL.")
+        return False
+
     def execute_query(self, query, params=None):
+        """Execute a query on the MySQL database."""
+        if self.connection is None or not self.connection.open:
+            if not self.reconnect():
+                print("[ERROR] Could not reconnect to MySQL, aborting query execution.")
+                return
+
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(query, params)
                 self.connection.commit()
-                print("[INFO] Insert Item successfully.")
+                print("[INFO] Query executed successfully.")
         except pymysql.MySQLError as e:
-            config.status_db.insert_status_log("ERROR", f"Failed to execute query: {e}")
+            # Handle MySQL specific errors
+            if e.args[0] in (2006, 2013):  # MySQL server has gone away, Lost connection to MySQL
+                print("[ERROR] Connection lost, attempting to reconnect...")
+                if self.reconnect():
+                    # Retry the query after reconnecting
+                    self.execute_query(query, params)  # Recursively call to retry the query
+                else:
+                    print("[ERROR] Failed to reconnect, query execution aborted.")
+            else:
+                print(f"[ERROR] MySQL error occurred: {e}")
         except Exception as e:
-            config.status_db.insert_status_log("ERROR", f"Unexpected error occurred: {e}")
+            print(f"[ERROR] Unexpected error occurred: {e}")
 
     def fetch_all(self, query, params=None):
         """Execute a query and fetch all results."""
@@ -192,19 +225,6 @@ class MySQLDatabase:
                     );
                 """
         self.execute_query(create_table_sql)
-        create_table_sql = f"""
-                            CREATE TABLE IF NOT EXISTS {config.STATUS_TABLE_NAME} (
-                            ID INT AUTO_INCREMENT PRIMARY KEY,
-                            PROJECT_NAME VARCHAR(255),
-                            ISSUE_TYPE VARCHAR(255),
-                            ISSUE_COUNTS INT,
-                            ERROR_MESSAGE VARCHAR(255),
-                            STATUS VARCHAR(255),
-                            EXECUTION_TIME TIME,
-                            CREATED DATETIME
-                        );
-                """
-        self.execute_query(create_table_sql)
 
         create_table_sql = f"""
                             CREATE TABLE IF NOT EXISTS {config.TRAND_TABLE_NAME} (
@@ -262,27 +282,6 @@ class MySQLDatabase:
                             );
                         """
         self.execute_query(create_table_sql)
-    def insert_log(self, item):
-        insert_query = f"""INSERT INTO {config.STATUS_TABLE_NAME} ( PROJECT_NAME, ISSUE_TYPE, ISSUE_COUNTS, ERROR_MESSAGE, STATUS, EXECUTION_TIME, CREATED) VALUES (
-                            %(PROJECT_NAME)s, %(ISSUE_TYPE)s, %(ISSUE_COUNTS)s, %(ERROR_MESSAGE)s, %(STATUS)s, %(EXECUTION_TIME)s, %(CREATED)s
-                        );
-                    """
-        self.execute_query(insert_query, item)
-
-    def insert_status_log(self, status, error=""):
-        end_time = datetime.now()
-        execution_time = end_time - config.created
-        log_data = {
-            "PROJECT_NAME": "Bayut Scrap",
-            "ISSUE_TYPE": "",
-            "ISSUE_COUNTS": config.count,
-            "ERROR_MESSAGE": error,
-            "STATUS": status,
-            "EXECUTION_TIME": str(execution_time),
-            "CREATED": config.created
-        }
-        self.insert_log(log_data)
-        self.close_connection()
     def insert_item(self, item):
         insert_query = f"""
                 INSERT INTO {config.TABLE_NAME} (
