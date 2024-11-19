@@ -1,9 +1,11 @@
+from time import sleep
+
 import pymysql
 import config
 import time
 
 class MySQLDatabase:
-    def __init__(self, host, user, password, database, port=3306, timeout=80):
+    def __init__(self, host, user, password, database, port=3306, timeout=600):
         """Initialize the MySQLDatabase class with connection parameters."""
         self.host = host
         self.user = user
@@ -106,10 +108,13 @@ class MySQLDatabase:
             else:
                 print(f"Updated id: {item['id']}")
                 self.update_item(item)
+                time.sleep(2)
         else:
             print(f"Inserting new item with id: {item['id']}")
             self.insert_item(item)
+            time.sleep(2)
         self.insert_item_for_trand(item)
+        time.sleep(2)
 
     def update_item(self, json_data):
         update_query = f"""
@@ -172,7 +177,7 @@ class MySQLDatabase:
     def init_table(self):
         create_table_sql = f"""
                     CREATE TABLE IF NOT EXISTS {config.TABLE_NAME} (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         ownerID INT,
                         title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
                         baths INT,
@@ -184,7 +189,7 @@ class MySQLDatabase:
                         area FLOAT,
                         plotArea FLOAT,
                         location VARCHAR(255),
-                        category VARCHAR(255),
+                        category VARCHAR(100),
                         mobile VARCHAR(20),
                         phone VARCHAR(20),
                         whatsapp VARCHAR(20),
@@ -206,7 +211,7 @@ class MySQLDatabase:
                         ownerAgent VARCHAR(255),
                         agency VARCHAR(255),
                         property_link VARCHAR(255),
-                        size_value VARCHAR(255),
+                        size_value VARCHAR(100),
                         building_name VARCHAR(255),
                         park_spaces INT,
                         floors INT,
@@ -221,14 +226,14 @@ class MySQLDatabase:
                         parking_availability VARCHAR(255),
                         retail_centres VARCHAR(255),
                         ownership VARCHAR(255),
-                        is_available TINYINT(1)
+                        is_available TINYINT(1) DEFAULT 1
                     );
                 """
         self.execute_query(create_table_sql)
 
         create_table_sql = f"""
-                            CREATE TABLE IF NOT EXISTS {config.TRAND_TABLE_NAME} (
-                                id INT AUTO_INCREMENT PRIMARY KEY,
+                            CREATE TABLE IF NOT EXISTS {config.TREND_TABLE_NAME} (
+                                id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                 ownerID INT,
                                 title VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
                                 baths INT,
@@ -312,7 +317,7 @@ class MySQLDatabase:
     def insert_item_for_trand(self, item):
         item["created"] = config.created
         insert_query = f"""
-            INSERT INTO {config.TRAND_TABLE_NAME} (
+            INSERT INTO {config.TREND_TABLE_NAME} (
                 ownerID, title, baths, rooms, price, createdAt, updatedAt,
                 reactivatedAt, area, plotArea, location, category, mobile, phone,
                 whatsapp, proxyPhone, contactName, permitNumber, ded, rera, orn,

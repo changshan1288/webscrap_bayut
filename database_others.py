@@ -41,7 +41,7 @@ class MySQLDatabaseOther:
             with self.connection.cursor() as cursor:
                 cursor.execute(query, params)
                 self.connection.commit()
-                print("[INFO] Insert Item successfully.")
+                print("[INFO] Query executed successfully.")
         except pymysql.MySQLError as e:
             print(f"Failed to execute query: {e}")
         except Exception as e:

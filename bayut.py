@@ -125,13 +125,13 @@ def download_webpage(externalID):
 
             time.sleep(3)
 
-            pyautogui.hotkey('win', 'up')
-
-            time.sleep(1)
+            # pyautogui.hotkey('win', 'up')
+            #
+            # time.sleep(1)
 
             pyautogui.hotkey('ctrl', 's')
 
-            time.sleep(1)
+            time.sleep(2)
 
             pyautogui.typewrite(filename)
 

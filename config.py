@@ -23,7 +23,7 @@ TABLE_NAME = os.getenv("TABLE_NAME")
 
 STATUS_TABLE_NAME = os.getenv("STATUS_TABLE_NAME")
 
-TRAND_TABLE_NAME = os.getenv("TRAND_TABLE_NAME")
+TREND_TABLE_NAME = os.getenv("TREND_TABLE_NAME")
 
 count = 0
 
@@ -32,3 +32,5 @@ created = ""
 main_db = ""
 
 status_db = ""
+
+flag = True
