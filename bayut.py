@@ -42,13 +42,11 @@ def main(purpose, category, search, page_num):
             config.main_db.check_item_and_update_or_insert(item)
             config.count += 1
         remove_all_files_in_folder(config.UTILS_DIR + '/temp')
-        time.sleep(3)
+        time.sleep(2)
         if len(hints) == 0:
             config.status_db.insert_status_log("SUCCESS")
             break
         page_num += 1
-
-
 
 def remove_all_files_in_folder(folder_path):
     path = Path(folder_path)
@@ -135,11 +133,11 @@ def download_webpage(externalID):
 
             pyautogui.typewrite(filename)
 
-            time.sleep(1)
+            time.sleep(2)
 
             pyautogui.press('enter')
 
-            time.sleep(1)
+            time.sleep(2)
 
             if os.path.exists(config.UTILS_DIR + '/temp/'+ filename):
                 for _ in range(refind):
@@ -177,14 +175,16 @@ if __name__ == '__main__':
         host=config.MYSQL_HOST,
         user=config.MYSQL_USER,
         password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB
+        database=config.MYSQL_DB,
+        port=int(config.MYSQL_PORT)
     )
 
     config.status_db = MySQLDatabaseOther(
         host=config.MYSQL_HOST,
         user=config.MYSQL_USER,
         password=config.MYSQL_PASSWORD,
-        database=config.MYSQL_DB_OTHERS
+        database=config.MYSQL_DB_OTHERS,
+        port = int(config.MYSQL_PORT)
     )
 
     config.main_db.open_connection()
@@ -193,5 +193,7 @@ if __name__ == '__main__':
     config.main_db.init_table()
     config.status_db.init_table()
 
+    config.main_db.close_connection()
+    config.status_db.close_connection()
     main(purpose, category, search, page_num)
 

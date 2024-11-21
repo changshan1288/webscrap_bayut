@@ -37,6 +37,7 @@ class MySQLDatabaseOther:
             print("MySQL connection closed.")
 
     def execute_query(self, query, params=None):
+        self.open_connection()
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(query, params)
@@ -46,6 +47,7 @@ class MySQLDatabaseOther:
             print(f"Failed to execute query: {e}")
         except Exception as e:
             print(f"Unexpected error occurred: {e}")
+        self.close_connection()
 
     def init_table(self):
         create_table_sql = f"""

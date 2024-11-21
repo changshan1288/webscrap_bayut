@@ -97,6 +97,7 @@ class MySQLDatabase:
             return None
 
     def check_item_and_update_or_insert(self, item):
+        self.open_connection()
         query = (f"SELECT updatedAt FROM {config.TABLE_NAME} WHERE id = %s")
         result = self.fetch_all(query, item["id"])
         if result:
@@ -108,13 +109,11 @@ class MySQLDatabase:
             else:
                 print(f"Updated id: {item['id']}")
                 self.update_item(item)
-                time.sleep(2)
         else:
             print(f"Inserting new item with id: {item['id']}")
             self.insert_item(item)
-            time.sleep(2)
         self.insert_item_for_trand(item)
-        time.sleep(2)
+        self.close_connection()
 
     def update_item(self, json_data):
         update_query = f"""
